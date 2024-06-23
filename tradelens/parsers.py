@@ -18,6 +18,13 @@ class TradeLogParser(ABC):
 
 class KiwoomHtsClipboardTradeLogParser(TradeLogParser):
     def parse(self) -> list[TradeLog]:
+        """클립보드에서 키움 HTS 거래내역 데이터를 읽어 TradeLog 객체로 변환합니다.
+        화면번호 1691의 일별 매매내역 데이터 화면에서 복사한 데이터를 붙여넣어 사용합니다.
+
+        Returns:
+            list[TradeLog]: _description_
+        """
+
         def _preprocess(column: pl.Expr) -> pl.Expr:
             return pl.when(column != "").then(column.str.replace_all(r"'|,|%", "")).otherwise(None)
 
