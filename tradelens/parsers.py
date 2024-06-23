@@ -22,7 +22,7 @@ class KiwoomHtsClipboardTradeLogParser(TradeLogParser):
         화면번호 1691의 일별 매매내역 데이터 화면에서 복사한 데이터를 붙여넣어 사용합니다.
 
         Returns:
-            list[TradeLog]: _description_
+            list[TradeLog]: 거래내역 데이터를 TradeLog 객체로 변환한 리스트
         """
 
         def _preprocess(column: pl.Expr) -> pl.Expr:
