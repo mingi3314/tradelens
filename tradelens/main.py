@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 
 import typer
@@ -20,7 +19,7 @@ def init() -> None:
     """
     Initialize the configuration for trade journal.
     """
-    output_dir = typer.prompt(text="Enter the directory to save journals", type=Path)
+    output_dir = typer.prompt(text="Enter the directory to save journals")
 
     config = {"output_dir": output_dir}
 
@@ -33,19 +32,17 @@ def init() -> None:
 
 
 @app.command()
-def generate_notes(
-    output_dir: str = "notes", template_path: str = "tradelens/templates/journal_template.md"
-) -> None:
+def generate_notes(template_path: str = "tradelens/templates/journal_template.md") -> None:
     """
     Generate Obsidian notes from clipboard data.
     """
     config = _load_config()
-    output_dir = config.output_dir
+    output_dir = Path(config.output_dir)
+    journals_dir = output_dir / "journals"
 
-    typer.echo(f"Generating notes in {output_dir} using template {template_path}")
+    typer.echo(f"Generating notes in {journals_dir} using template {template_path}")
     try:
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        journals_dir.mkdir(parents=True, exist_ok=True)
 
         # 템플릿 로드
         template = load_template(template_path)
@@ -56,7 +53,7 @@ def generate_notes(
 
         # 각 row에 대해 노트를 생성
         for trade_log in trade_logs:
-            _write_journal(trade_log, template, output_dir)
+            _write_journal(trade_log, template, journals_dir)
 
         typer.secho("Notes generated successfully!", fg=typer.colors.GREEN)
 
@@ -64,7 +61,7 @@ def generate_notes(
         typer.secho(f"Error reading clipboard data or generating notes:\n{e}", fg=typer.colors.RED)
 
 
-def _write_journal(trade_log: TradeLog, template: Template, output_dir: str) -> None:
+def _write_journal(trade_log: TradeLog, template: Template, output_dir: Path) -> None:
     try:
         note_content = template.render(
             date=trade_log.date,
@@ -79,9 +76,7 @@ def _write_journal(trade_log: TradeLog, template: Template, output_dir: str) -> 
             return_pct=trade_log.return_pct,
         )
 
-        filename = os.path.join(
-            output_dir, f"{trade_log.date.strftime("%Y-%m-%d")}_{trade_log.label}.md"
-        )
+        filename = output_dir / f"{trade_log.date.strftime("%Y-%m-%d")}_{trade_log.label}.md"
         with open(filename, "w", encoding="utf-8") as file:
             file.write(note_content)
     except Exception as e:
